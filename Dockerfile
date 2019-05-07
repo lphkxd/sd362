@@ -31,6 +31,9 @@ RUN yum -y install \
         curl \
         curl-devel \
         pcre \
+        libjpeg-devel \
+        freetype-devel \
+        libpng-devel \
         pcre-devel \
         libxslt \
         libxslt-devel \
@@ -43,6 +46,17 @@ RUN yum -y install \
     && rm -rf /var/cache/{yum,ldconfig}/* \
     && rm -rf /etc/ld.so.cache \
     && yum clean all
+
+ #lpng1637
+ADD install/re2c-0.16.tar.gz ${SRC_DIR}/
+
+RUN cd ${SRC_DIR}/re2c-0.16 \
+    && ./configure \
+    && make clean > /dev/null \
+    && make \
+    && make install \
+    && rm -f ${SRC_DIR}/re2c-0.16.tar.gz \
+    && rm -rf ${SRC_DIR}/re2c-0.16
 
 
 #安装gd依赖库安装
@@ -81,6 +95,16 @@ RUN cd ${SRC_DIR}/jpeg-9 \
     && rm -f ${SRC_DIR}/jpegsrc.v9.tar.gz \
     && rm -rf ${SRC_DIR}/jpeg-9
 
+ #lpng1637
+ADD install/libgd-2.2.5.tar.gz ${SRC_DIR}/
+
+RUN cd ${SRC_DIR}/libgd-2.2.5 \
+    && ./configure --prefix=/usr/local/gd2  --with-jpeg=/usr/local/jpeg --with-freetype=/usr/local/freetype --with-png=/usr/local/png \
+    && make clean > /dev/null \
+    && make \
+    && make install \
+    && rm -f ${SRC_DIR}/libgd-2.2.5.tar.gz \
+    && rm -rf ${SRC_DIR}/libgd-2.2.5
 
 # php
 ADD install/php-${PHP_VERSION}.tar.gz ${SRC_DIR}/
@@ -97,10 +121,6 @@ RUN cd ${SRC_DIR}/php-${PHP_VERSION} \
        --enable-pcntl \
        --enable-xml \
        --enable-zip \
-       --enable-gd \
-       --with-jpeg-dir=/usr/local/jpeg \
-       --with-png-dir=/usr/local/libpng \
-       --with-freetype-dir=/usr/local/freetype \
        --with-curl \
        --with-libedit \
        --with-openssl \
@@ -120,14 +140,18 @@ RUN cd ${SRC_DIR}/php-${PHP_VERSION} \
     && mkdir -p ${PHP_INI_DIR}/conf.d \
     && cp ${SRC_DIR}/php-${PHP_VERSION}/php.ini-production ${PHP_INI_DIR}/php.ini \
     && echo -e "opcache.enable=1\nopcache.enable_cli=1\nzend_extension=opcache.so" > ${PHP_INI_DIR}/conf.d/10-opcache.ini \
+
+    && cd ${SRC_DIR}/php-${PHP_VERSION}/ext/gd \
+    && phpize \
+    && ./configure \
+    && make \
+    && make install \
+    && rm -f ${SRC_DIR}/gd.tar.gz \
+    && rm -rf ${SRC_DIR}/gd \
+    &&  echo "extension=gd.so" > ${INIT_FILE}/gd.ini
     && rm -f ${SRC_DIR}/php-${PHP_VERSION}.tar.gz \
     && rm -rf ${SRC_DIR}/php-${PHP_VERSION}
 
-
-#   php-gd
-RUN yum -y install \
-        php-gd\
-    && yum clean all
 #  hiredis
 ADD install/hiredis-${HIREDIS_VERSION}.tar.gz ${SRC_DIR}/
 RUN cd ${SRC_DIR}/hiredis-${HIREDIS_VERSION} \
@@ -187,7 +211,6 @@ RUN cd ${SRC_DIR}/php-inotify-${PHPINOTIFY_VERSION} \
     && rm -f ${SRC_DIR}/inotify-${PHPINOTIFY_VERSION}.tar.gz \
     && rm -rf ${SRC_DIR}/php-inotify-${PHPINOTIFY_VERSION}
 
-
 #  ext-async
 ADD install/ext-async-master.tar.gz ${SRC_DIR}/
 RUN cd ${SRC_DIR}/ext-async-master \
@@ -198,11 +221,10 @@ RUN cd ${SRC_DIR}/ext-async-master \
     && make install \
     && echo "extension=swoole_async.so" > ${INIT_FILE}/swoole_async.ini \
     && rm -f ${SRC_DIR}/ext-async-master.tar.gz \
-    && rm -rf ${SRC_DIR}/ext-async-master \
-    &&  echo "extension=gd.so" > ${INIT_FILE}/gd.ini
-
-
-
-
-
+    && rm -rf ${SRC_DIR}/ext-async-master
+RUN sed -i 's|;date.timezone =|date.timezone = "Asia/Shanghai"|g' ${PHP_INI_DIR}/php.ini
+RUN sed -i 's|memory_limit = 128M|memory_limit = 2048M|g' ${PHP_INI_DIR}/php.ini
+RUN sed -i 's|max_execution_time = 30|max_execution_time = 300|g' ${PHP_INI_DIR}/php.ini
+RUN sed -i 's|upload_max_filesize = 2M|upload_max_filesize = 256M|g' ${PHP_INI_DIR}/php.ini
+RUN sed -i 's|post_max_size = 8M|post_max_size = 256M|g' ${PHP_INI_DIR}/php.ini
 COPY ./config/* ${INIT_FILE}/
