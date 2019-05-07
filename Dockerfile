@@ -148,7 +148,7 @@ RUN cd ${SRC_DIR}/php-${PHP_VERSION} \
     && make install \
     && rm -f ${SRC_DIR}/gd.tar.gz \
     && rm -rf ${SRC_DIR}/gd \
-    &&  echo "extension=gd.so" > ${INIT_FILE}/gd.ini
+    &&  echo "extension=gd.so" > ${INIT_FILE}/gd.ini \
     && rm -f ${SRC_DIR}/php-${PHP_VERSION}.tar.gz \
     && rm -rf ${SRC_DIR}/php-${PHP_VERSION}
 
