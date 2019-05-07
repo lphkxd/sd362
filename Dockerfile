@@ -215,7 +215,7 @@ RUN cd ${SRC_DIR}/php-inotify-${PHPINOTIFY_VERSION} \
 ADD install/ext-async-master.tar.gz ${SRC_DIR}/
 RUN cd ${SRC_DIR}/ext-async-master \
     && phpize \
-    && ./configure \
+    && ./configure  --enable-async-redis --enable-openssl --enable-mysqlnd --enable-coroutine \
     && make clean > /dev/null \
     && make -j 4 \
     && make install \
