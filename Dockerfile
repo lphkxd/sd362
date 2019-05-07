@@ -99,7 +99,7 @@ RUN cd ${SRC_DIR}/jpeg-9 \
 ADD install/libgd-2.2.5.tar.gz ${SRC_DIR}/
 
 RUN cd ${SRC_DIR}/libgd-2.2.5 \
-    && ./configure --prefix=/usr/local/gd2  --with-jpeg=/usr/local/jpeg --with-freetype=/usr/local/freetype --with-png=/usr/local/png \
+    && ./configure --prefix=/usr/local/gd2   --with-jpeg=/usr/local/jpeg --with-freetype=/usr/local/freetype --with-png=/usr/local/png \
     && make clean > /dev/null \
     && make \
     && make install \
@@ -143,12 +143,12 @@ RUN cd ${SRC_DIR}/php-${PHP_VERSION} \
 
     && cd ${SRC_DIR}/php-${PHP_VERSION}/ext/gd \
     && phpize \
-    && ./configure \
+    && ./configure --with-jpeg-dir=/usr/local/jpeg --with-png-dir=/usr/local/png  --with-freetype-dir=/usr/local/freetype \
     && make \
     && make install \
     && rm -f ${SRC_DIR}/gd.tar.gz \
     && rm -rf ${SRC_DIR}/gd \
-    &&  echo "extension=gd.so" > ${INIT_FILE}/gd.ini \
+    && echo "extension=gd.so" > ${INIT_FILE}/gd.ini \
     && rm -f ${SRC_DIR}/php-${PHP_VERSION}.tar.gz \
     && rm -rf ${SRC_DIR}/php-${PHP_VERSION}
 
